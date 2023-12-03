@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
+import asyncio
 import http.cookiejar
 import json
 import sys
 import urllib.parse
 import urllib.request
+import time
 from collections import OrderedDict
 from decimal import Decimal
 
@@ -11,19 +13,37 @@ from bs4 import BeautifulSoup
 from unidecode import unidecode
 
 
-def get_data(ticker):
+async def get_data(ticker, refresh=False):
     file_name = 'cache/' + ticker + '.json'
     try:
         with open(file_name, 'r') as file:
             data_loaded = json.load(file)
+            date = data_loaded['date'] if 'date' in data_loaded else 1701625668
+            print("Cache encontrado")
             if data_loaded:
                 print("Utilizando cache")
                 # reparse dict values using fromStringToCorrectType
                 data_loaded = {k: fromStringToCorrectType(v) for k, v in data_loaded.items()}
+                # if cache date is older than 15 days, update cache
+                if (time.time() - date) > 1296000:
+                    if refresh:
+                        print("Cache antigo, atualizando.")
+                        data_loaded = await get_refreshed_data(ticker)
+                    else:
+                        print("Cache antigo, mas não atualizando.")
                 return data_loaded
     except FileNotFoundError:
-        print("Arquivo não encontrado. Continuando sem carregar dados.")
+        print("Arquivo não encontrado. Atualizando dados.")
 
+    if refresh:
+        print("Atualizando dados.")
+        return await get_refreshed_data(ticker)
+    print("Dados não encontrados. Ative o refresh para atualizar.")
+    return dict()
+
+
+async def get_refreshed_data(ticker):
+    file_name = 'cache/' + ticker + '.json'
     url = 'https://investidor10.com.br/acoes/' + ticker
 
     cookie_jar = http.cookiejar.CookieJar()
@@ -32,10 +52,16 @@ def get_data(ticker):
                          ('Accept', 'text/html, text/plain, text/css, text/sgml, */*;q=0.01')]
 
     try:
-        with opener.open(url) as link:
-            content = link.read().decode('utf-8')
+        # link = await asyncio.get_event_loop().run_in_executor(None, opener.open, url)
+        link = opener.open(url)
+        content = link.read().decode('utf-8')
     except Exception as err:
         print(err)
+        print("Ticker: " + ticker + ", Erro ao abrir a página. Verifique se o ticker está correto. " + url)
+        if str(err) == "HTTP Error 404: Not Found":
+            print("Ticker não encontrado, salvando arquivo vazio.")
+            with open(file_name, 'w') as file:
+                json.dump({'date': time.time()}, file)
         return dict()
 
     # Parse the HTML content
@@ -72,6 +98,11 @@ def get_data(ticker):
     else:
         print("Div 'table-indicators-company' not found.")
 
+    # Add date to the result
+    result.update({
+        'date': time.time()
+    })
+
     with open(file_name, 'w') as file:
         json.dump(result, file)
 
@@ -84,12 +115,14 @@ def to_camel_case(s):
     parts = s.split()
     return parts[0].lower() + ''.join(x.capitalize() for x in parts[1:])
 
+
 def fromStringToCorrectType(value: str):
     try:
         value = todecimal(value)
     except Exception:
         value = value
     return value
+
 
 def todecimal(string):
     if (string == "-"):
