@@ -24,21 +24,21 @@ def json_api():
         lista = {outer_k: {inner_k: float(inner_v) for inner_k, inner_v in outer_v.items()} for outer_k, outer_v in lista.items()}
         
     if ticker:
-        investidorTenData = getDataInvestidor10(ticker)
+        investidor10Data = getDataInvestidor10(ticker)
         if ticker in lista:
             result = dict(lista[ticker])
         else:
-            result = investidorTenData
+            result = investidor10Data
         if result:
-            result['margemEbitda'] = investidorTenData['margemEbitda']
-            result['payout'] = investidorTenData['payout']
-            result['vpa'] = investidorTenData['vpa']
-            result['lpa'] = investidorTenData['lpa']
-            result['freeFloat'] = investidorTenData['freeFloat']
-            result['tagAlong'] = investidorTenData['tagAlong']
-            result['segmentoDeListagem'] = investidorTenData['segmentoDeListagem']
-            result['nAcoes'] = investidorTenData['noTotalDePapeis']
-            result['mktValue'] = investidorTenData['valorDeMercado']
+            result['margemEbitda'] = investidor10Data['margemEbitda']
+            result['payout'] = investidor10Data['payout']
+            result['vpa'] = investidor10Data['vpa']
+            result['lpa'] = investidor10Data['lpa']
+            result['freeFloat'] = investidor10Data['freeFloat']
+            result['tagAlong'] = investidor10Data['tagAlong']
+            result['segmentoDeListagem'] = investidor10Data['segmentoDeListagem']
+            result['nAcoes'] = investidor10Data['noTotalDePapeis']
+            result['mktValue'] = investidor10Data['valorDeMercado']
 
         return jsonify(result)
     else:
