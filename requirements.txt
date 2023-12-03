@@ -1,4 +1,4 @@
-# pip3 install -r required.txt
+# pip3 install -r requirements.txt
 Flask>=3.0.0
 itsdangerous>=2.1.2
 Jinja2>=3.1.2
