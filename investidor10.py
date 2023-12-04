@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-import asyncio
 import http.cookiejar
 import json
 import sys
@@ -19,9 +18,9 @@ async def get_data(ticker, refresh=False):
         with open(file_name, 'r') as file:
             data_loaded = json.load(file)
             date = data_loaded['date'] if 'date' in data_loaded else 1701625668
-            print("Cache encontrado")
+            # print("Cache encontrado")
             if data_loaded:
-                print("Utilizando cache")
+                # print("Utilizando cache")
                 # reparse dict values using fromStringToCorrectType
                 data_loaded = {k: fromStringToCorrectType(v) for k, v in data_loaded.items()}
                 # if cache date is older than 15 days, update cache

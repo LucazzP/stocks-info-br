@@ -48,11 +48,12 @@ async def json_api():
         return jsonify(result)
     else:
         results = await asyncio.gather(*[getDataInvestidor10(ticker) for ticker in lista])
-        for ticker in lista:
-            investidor10Data = results[lista.index(ticker)]
-            fundamentusData = dict(lista[ticker])
+        for i in range(len(lista)):
+            stock: str = list(lista.keys())[i]
+            investidor10Data = results[i]
+            fundamentusData = dict(lista[stock])
             result = merge_datas(fundamentusData, investidor10Data)
-            lista[ticker] = result
+            lista[stock] = result
         return jsonify(lista)
 
 
